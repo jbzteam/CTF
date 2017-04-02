@@ -1,0 +1,60 @@
+                <?php
+                ini_set('display_errors',1);
+                error_reporting(E_ALL);
+
+                define('MY_AES_KEY', "abcdef0123456789");
+                define('MY_HMAC_KEY',"1234567890123456" );
+                define("FLAG","856bc9fc0d0b3c23d1a58c8e93a433e4");
+
+                function aes($data, $encrypt) {
+                        $aes = mcrypt_module_open(MCRYPT_RIJNDAEL_128, '', MCRYPT_MODE_CBC, '');
+                        $iv = mcrypt_create_iv (mcrypt_enc_get_iv_size($aes), MCRYPT_RAND);
+                        $iv = "1234567891234567";
+                        mcrypt_generic_init($aes, MY_AES_KEY, $iv);
+                        return $encrypt ? mcrypt_generic($aes, $data) : mdecrypt_generic($aes, $data);
+                }
+
+                define('MY_MAC_LEN', 40);
+
+                function hmac($data) {
+                        return hash_hmac('sha1', data, MY_HMAC_KEY);
+                }
+
+                function encrypt($data) {
+                        return aes($data . hmac($data), true);
+                }
+
+                function decrypt($data) {
+                        $data = rtrim(aes($data, false), "\0");
+                        $mac = substr($data, -MY_MAC_LEN);
+                        $data = substr($data, 0, -MY_MAC_LEN);
+                        return hmac($data) === $mac ? $data : null;
+                }
+
+                $settings = array();
+                if (@$_COOKIE['pci_crypt']) {
+                                echo @decrypt(base64_decode($_COOKIE['pci_crypt']));
+                                $settings = unserialize(@decrypt(base64_decode($_COOKIE['pci_crypt'])));
+                }
+                if (@$_POST['cc'] && is_string($_POST['cc']) && strlen($_POST['cc']) < 200) {
+                        $settings = array(
+                                        'cc' => $_POST['cc'],
+                                        'value' => ('echo ' . escapeshellarg("{$_POST['cc']}")),
+                        );
+                        setcookie('pci_crypt', base64_encode(@encrypt(serialize($settings))));
+                }
+                $d = array();
+                if (@$settings['value']) {  
+                        passthru($settings['value']);
+                }else {
+                ?>
+                <h3>PCI Token Generator v.0.0.2</h3>
+                <h4>(Debug)</h4>
+                <form action='index.php' method='POST'><br>
+                CC number? <input type='text' name='cc' /><br>
+                <input type='submit' name='submit' value='Submit' />
+                </form>
+                <!-- it's kinda bugged, read the changelog-->
+                <?php
+                                }
+                ?>
